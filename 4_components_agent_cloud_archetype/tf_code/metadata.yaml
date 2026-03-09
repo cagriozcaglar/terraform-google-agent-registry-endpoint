@@ -1,0 +1,117 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: blueprints.cloud.google.com/v1alpha1
+kind: BlueprintMetadata
+metadata:
+  name: terraform-google-agent-registry-endpoint
+  annotations:
+    config.kubernetes.io/local-config: "true"
+spec:
+  info:
+    title: Vertex AI Agent Registry PSC Endpoint
+    source:
+      type: git
+      source: https://github.com/GoogleCloudPlatform/terraform-google-agent-registry-endpoint # Placeholder URL
+      version: 0.1.0 # Placeholder version
+    actuationTool:
+      type: Terraform
+      version:
+        - ">= 1.0"
+    description:
+      tagline: Creates a Private Service Connect (PSC) endpoint for the Vertex AI Agent Registry service.
+      detailed: |
+        This module provisions a Private Service Connect (PSC) endpoint, implemented as a google_compute_forwarding_rule,
+        to provide secure, private access from a consumer VPC to the managed Vertex AI Agent Registry service.
+      preDeploy: To deploy this blueprint, you must have an active billing account and billing permissions.
+    examples:
+      - name: simple_example
+        title: Basic PSC Endpoint
+        description: This example shows how to create a basic PSC endpoint with an automatically allocated IP address.
+        source:
+          type: git
+          source: examples/simple_example # Placeholder path
+    icon: https://cloud.google.com/static/images/cloud/products/icons/svg/vertex-ai.svg
+    documentation:
+      - title: Private Service Connect
+        url: https://cloud.google.com/vpc/docs/private-service-connect
+      - title: Vertex AI Agent Builder
+        url: https://cloud.google.com/vertex-ai/docs/agent-builder/overview
+
+  content:
+    variables:
+      - name: ip_address
+        description: The IP address of the PSC endpoint. If empty, an IP address will be automatically allocated from the subnetwork.
+        type: string
+        required: false
+        defaultValue: null
+      - name: labels
+        description: A map of labels to apply to the PSC endpoint.
+        type: map(string)
+        required: false
+        defaultValue: {}
+      - name: name
+        description: The name of the Private Service Connect endpoint.
+        type: string
+        required: false
+        defaultValue: agent-registry-psc-endpoint
+      - name: network
+        description: The self-link of the network to which the PSC endpoint will be connected. If not provided, no endpoint will be created.
+        type: string
+        required: true
+        defaultValue: null
+      - name: project_id
+        description: The project ID where the Private Service Connect endpoint will be created. If not provided, the provider project will be used.
+        type: string
+        required: false
+        defaultValue: null
+      - name: region
+        description: The GCP region for the Private Service Connect endpoint. If not provided, the provider region will be used.
+        type: string
+        required: false
+        defaultValue: null
+      - name: subnetwork
+        description: The self-link of the subnetwork to which the PSC endpoint will be connected. The subnetwork must have purpose `PRIVATE_SERVICE_CONNECT`. If not provided, no endpoint will be created.
+        type: string
+        required: true
+        defaultValue: null
+    variableGroups:
+      - title: Network Configuration
+        description: Details for the VPC network where the PSC endpoint will be deployed.
+        variables:
+          - project_id
+          - region
+          - network
+          - subnetwork
+      - title: Endpoint Configuration
+        description: Configuration for the PSC endpoint resource itself.
+        variables:
+          - name
+          - ip_address
+          - labels
+    outputs:
+      - name: id
+        description: The full ID of the Private Service Connect endpoint (forwarding rule).
+      - name: ip_address
+        description: The IP address of the Private Service Connect endpoint.
+      - name: name
+        description: The name of the Private Service Connect endpoint.
+
+  requirements:
+    roles:
+      - level: Project
+        roles:
+          - roles/compute.networkAdmin
+    services:
+      - compute.googleapis.com
